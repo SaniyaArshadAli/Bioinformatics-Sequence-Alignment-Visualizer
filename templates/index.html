@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioinformatics Sequence Alignment Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        textarea, input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+        
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            font-size: 16px;
+        }
+        
+        .scoring-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .scoring-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .algorithm-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .algorithm-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .algorithm-option:hover {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+        
+        .algorithm-option.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+        
+        .algorithm-option h3 {
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .algorithm-option p {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        input[type="radio"] {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .info-panel {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .info-panel ul {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .info-panel li {
+            margin: 8px 0;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .input-section {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .scoring-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .algorithm-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 Bioinformatics Sequence Alignment Visualizer</h1>
+            <p>Interactive visualization of sequence alignment algorithms | Educational Tool</p>
+        </div>
+        
+        <div class="content">
+            <form id="alignmentForm" action="/visualize" method="POST">
+                <div class="input-section">
+                    <div class="form-group">
+                        <label>🔤 Sequence 1 (DNA/Protein)</label>
+                        <textarea name="seq1" rows="3" placeholder="Enter first sequence...&#10;Example: GATTACA" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔤 Sequence 2 (DNA/Protein)</label>
+                        <textarea name="seq2" rows="3" placeholder="Enter second sequence...&#10;Example: GATACA" required></textarea>
+                    </div>
+                    
+                    <div class="algorithm-selector">
+                        <div class="algorithm-option" onclick="selectAlgorithm('needleman_wunsch')">
+                            <h3>🌍 Needleman-Wunsch</h3>
+                            <p>Global Alignment - Aligns entire sequences end-to-end</p>
+                        </div>
+                        <div class="algorithm-option" onclick="selectAlgorithm('smith_waterman')">
+                            <h3>🔍 Smith-Waterman</h3>
+                            <p>Local Alignment - Finds best matching subsequences</p>
+                        </div>
+                    </div>
+                    <input type="hidden" name="algorithm" id="algorithm" value="needleman_wunsch">
+                    
+                    <div class="scoring-options">
+                        <div class="scoring-item">
+                            <label>✓ Match Score</label>
+                            <input type="number" name="match_score" value="1" step="1">
+                        </div>
+                        <div class="scoring-item">
+                            <label>✗ Mismatch Penalty</label>
+                            <input type="number" name="mismatch_penalty" value="-1" step="1">
+                        </div>
+                        <div class="scoring-item">
+                            <label>␣ Gap Penalty</label>
+                            <input type="number" name="gap_penalty" value="-1" step="1">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">🚀 Visualize Alignment →</button>
+                </div>
+            </form>
+            
+            <div class="info-panel">
+                <h3>📚 Educational Information</h3>
+                <ul>
+                    <li><strong>Global Alignment (Needleman-Wunsch):</strong> Aligns entire sequences from start to end. Best for sequences of similar length.</li>
+                    <li><strong>Local Alignment (Smith-Waterman):</strong> Finds the best matching subsequence. Ideal for finding conserved domains.</li>
+                    <li><strong>Dynamic Programming:</strong> Both algorithms use DP to find optimal alignments by building a scoring matrix.</li>
+                    <li><strong>Time Complexity:</strong> O(n×m) where n and m are sequence lengths. Space complexity is also O(n×m).</li>
+                    <li><strong>Hirschberg Algorithm:</strong> An advanced variant that reduces space complexity to O(min(n,m)) using divide-and-conquer.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function selectAlgorithm(algo) {
+            document.getElementById('algorithm').value = algo;
+            const options = document.querySelectorAll('.algorithm-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+        
+        // Set default selected
+        document.querySelector('.algorithm-option').classList.add('selected');
+        
+        // Form submission with loading state
+        document.getElementById('alignmentForm').onsubmit = function() {
+            const btn = this.querySelector('.btn');
+            btn.textContent = '⏳ Processing...';
+            btn.disabled = true;
+            return true;
+        };
+    </script>
+</body>
+</html>
