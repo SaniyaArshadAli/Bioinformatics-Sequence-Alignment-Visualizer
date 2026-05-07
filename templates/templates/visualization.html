@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alignment Visualization - Bioinformatics Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        
+        .matrix-container {
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .matrix-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .matrix-table td, .matrix-table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            min-width: 50px;
+        }
+        
+        .matrix-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .current-cell {
+            background: #ffeb3b !important;
+            animation: pulse 1s;
+        }
+        
+        .path-cell {
+            background: #a5d6a5 !important;
+        }
+        
+        @keyframes pulse {
+            0% { background: #ffeb3b; transform: scale(1); }
+            50% { background: #ffc107; transform: scale(1.05); }
+            100% { background: #ffeb3b; transform: scale(1); }
+        }
+        
+        .alignment-display {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .match-marker {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .mismatch-marker {
+            color: #e74c3c;
+        }
+        
+        .gap-marker {
+            color: #95a5a6;
+        }
+        
+        .step-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .step-slider {
+            flex: 1;
+        }
+        
+        .explanation-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        
+        .complexity-panel {
+            background: #fff3e0;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .matrix-table td, .matrix-table th {
+                padding: 4px;
+                min-width: 40px;
+                font-size: 12px;
+            }
+        }
+        
+        .trace-path {
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>🧬 Sequence Alignment Visualization</h2>
+            <div class="nav-buttons">
+                <button class="btn btn-primary" onclick="window.location.href='/'">← New Alignment</button>
+                <button class="btn btn-success" onclick="window.location.href='/export'">💾 Export Result</button>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>📊 Scoring Matrix</h3>
+                <div id="matrixContainer" class="matrix-container"></div>
+                <div class="step-controls">
+                    <button class="btn btn-primary" id="prevBtn" onclick="prevStep()">← Previous</button>
+                    <input type="range" id="stepSlider" min="0" max="0" value="0" class="step-slider" oninput="updateStep(this.value)">
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next →</button>
+                </div>
+                <div id="stepInfo"></div>
+            </div>
+            
+            <div class="card">
+                <h3>🎯 Alignment Result</h3>
+                <div class="score-badge" id="scoreDisplay"></div>
+                <div class="alignment-display" id="alignmentDisplay"></div>
+                <div class="trace-path" id="tracePathDisplay"></div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>💡 Step-by-Step Explanation</h3>
+                <div id="explanationBox" class="explanation-box"></div>
+            </div>
+            
+            <div class="card">
+                <h3>⚡ Performance & Complexity</h3>
+                <div id="complexityPanel" class="complexity-panel"></div>
+                <div id="algorithmInfo"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get data from backend
+        const data = {{ data | tojson }};
+        let currentStep = 0;
+        
+        // Initialize visualization
+        function init() {
+            displayMatrix(data.matrix, data.trace_path);
+            displayAlignment();
+            displayComplexity();
+            setupSlider();
+            updateStep(0);
+            displayTracePath();
+        }
+        
+        function displayMatrix(matrix, tracePath) {
+            const container = document.getElementById('matrixContainer');
+            const seq1 = '-' + data.seq1;
+            const seq2 = '-' + data.seq2;
+            
+            let html = '<table class="matrix-table">';
+            
+            // Header row
+            html += '<tr><th></th>';
+            for (let j = 0; j < seq2.length; j++) {
+                html += `<th>${seq2[j]}</th>`;
+            }
+            html += '</tr>';
+            
+            // Matrix rows
+            for (let i = 0; i < matrix.length; i++) {
+                html += '<tr>';
+                html += `<th>${seq1[i]}</th>`;
+                for (let j = 0; j < matrix[i].length; j++) {
+                    let cellClass = '';
+                    if (tracePath && tracePath.some(([ti, tj]) => ti === i && tj === j)) {
+                        cellClass = 'path-cell';
+                    }
+                    html += `<td class="${cellClass}" id="cell_${i}_${j}">${matrix[i][j]}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            container.innerHTML = html;
+        }
+        
+        function updateStep(stepIndex) {
+            currentStep = parseInt(stepIndex);
+            const step = data.steps[currentStep];
+            
+            if (step) {
+                // Highlight current cell
+                highlightCell(step.i, step.j);
+                
+                // Display calculation
+                const stepInfo = `
+                    <strong>Step ${currentStep + 1}/${data.steps.length}</strong><br>
+                    Cell (${step.i}, ${step.j})<br>
+                    Comparing: ${step.seq1_char} vs ${step.seq2_char}<br>
+                    Diagonal (match/mismatch): ${step.diagonal_score}<br>
+                    Up (gap in seq2): ${step.up_score}<br>
+                    Left (gap in seq1): ${step.left_score}<br>
+                    <strong>Chosen: ${step.chosen_score} (${step.chosen_direction})</strong>
+                `;
+                document.getElementById('stepInfo').innerHTML = stepInfo;
+                
+                // Update explanation
+                const explanation = getExplanation(step);
+                document.getElementById('explanationBox').innerHTML = explanation;
+            }
+            
+            // Update slider
+            document.getElementById('stepSlider').value = currentStep;
+        }
+        
+        function getExplanation(step) {
+            let explanation = `<strong>📖 Educational Explanation</strong><br><br>`;
+            explanation += `At position (${step.i}, ${step.j}), we're comparing '${step.seq1_char}' and '${step.seq2_char}'.<br><br>`;
+            explanation += `The algorithm calculates three possible scores:<br>`;
+            explanation += `1. <strong>Diagonal</strong>: ${step.diagonal_score} (match/mismatch)<br>`;
+            explanation += `2. <strong>Up</strong>: ${step.up_score} (gap in second sequence)<br>`;
+            explanation += `3. <strong>Left</strong>: ${step.left_score} (gap in first sequence)<br><br>`;
+            explanation += `The ${step.chosen_direction} direction was chosen with score ${step.chosen_score}.<br>`;
+            
+            if (data.algorithm === 'needleman_wunsch') {
+                explanation += `<br><strong>Global Alignment:</strong> We always take the maximum score to ensure the entire sequences are aligned from start to end.`;
+            } else {
+                explanation += `<br><strong>Local Alignment:</strong> We take the maximum score, but scores below 0 are set to 0, allowing us to find the best matching subsequence.`;
+            }
+            
+            return explanation;
+        }
+        
+        function highlightCell(i, j) {
+            // Remove previous highlights
+            document.querySelectorAll('.current-cell').forEach(cell => {
+                cell.classList.remove('current-cell');
+            });
+            
+            const cell = document.getElementById(`cell_${i}_${j}`);
+            if (cell) {
+                cell.classList.add('current-cell');
+                cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        function displayAlignment() {
+            const display = `
+                <div style="font-family: monospace; font-size: 16px; line-height: 1.5;">
+                    <div><strong>Sequence 1:</strong> ${data.aligned_seq1}</div>
+                    <div><strong>Markers:</strong> <span class="match-marker">${data.markers}</span></div>
+                    <div><strong>Sequence 2:</strong> ${data.aligned_seq2}</div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <span class="match-marker">|</span> = Match &nbsp;&nbsp;
+                    <span class="mismatch-marker">.</span> = Mismatch &nbsp;&nbsp;
+                    <span class="gap-marker"> </span> = Gap
+                </div>
+            `;
+            document.getElementById('alignmentDisplay').innerHTML = display;
+            document.getElementById('scoreDisplay').innerHTML = `🏆 Alignment Score: ${data.alignment_score}`;
+        }
+        
+        function displayComplexity() {
+            const complexity = data.complexity;
+            const html = `
+                <strong>⏱️ Time Complexity:</strong> ${complexity.time_complexity}<br>
+                <strong>💾 Space Complexity:</strong> ${complexity.space_complexity}<br>
+                <strong>📐 Algorithm Type:</strong> ${complexity.algorithm_type} Alignment<br>
+                <strong>🔬 Explanation:</strong> ${complexity.explanation}<br><br>
+                <strong>💡 Optimization Note:</strong> Hirschberg's algorithm can reduce space complexity to O(min(n,m)) while maintaining O(n×m) time complexity.
+            `;
+            document.getElementById('complexityPanel').innerHTML = html;
+        }
+        
+        function displayTracePath() {
+            const path = data.trace_path;
+            if (path && path.length > 0) {
+                const pathStr = path.map(([i, j]) => `(${i},${j})`).join(' → ');
+                document.getElementById('tracePathDisplay').innerHTML = `<strong>🔍 Traceback Path:</strong> ${pathStr}`;
+            }
+        }
+        
+        function setupSlider() {
+            const maxSteps = data.steps.length - 1;
+            document.getElementById('stepSlider').max = maxSteps;
+            
+            if (maxSteps < 0) {
+                document.getElementById('prevBtn').disabled = true;
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+        
+        function nextStep() {
+            if (currentStep < data.steps.length - 1) {
+                updateStep(currentStep + 1);
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                updateStep(currentStep - 1);
+            }
+        }
+        
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
