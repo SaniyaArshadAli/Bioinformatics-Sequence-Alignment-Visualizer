@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alignment Result - Bioinformatics Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .alignment {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Alignment Results</h1>
+        </div>
+        <div class="content">
+            <div class="result-section">
+                <h2>Optimal Alignment</h2>
+                <div class="alignment">
+                    {% if data %}
+                    <pre>{{ data.aligned_seq1 }}</pre>
+                    <pre>{{ data.markers }}</pre>
+                    <pre>{{ data.aligned_seq2 }}</pre>
+                    {% else %}
+                    <p>No alignment data available</p>
+                    {% endif %}
+                </div>
+                <div class="score">Score: {{ data.alignment_score if data else 'N/A' }}</div>
+            </div>
+            
+            <div class="result-section">
+                <h2>Algorithm Information</h2>
+                <p><strong>Algorithm:</strong> {{ data.algorithm.replace('_', ' ').title() if data else 'N/A' }}</p>
+                <p><strong>Match Score:</strong> {{ data.match_score if data else 'N/A' }}</p>
+                <p><strong>Mismatch Penalty:</strong> {{ data.mismatch_penalty if data else 'N/A' }}</p>
+                <p><strong>Gap Penalty:</strong> {{ data.gap_penalty if data else 'N/A' }}</p>
+            </div>
+            
+            <div>
+                <a href="/" class="btn">New Alignment</a>
+                <a href="/export" class="btn">Export Result</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
